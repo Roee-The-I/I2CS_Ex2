@@ -1,28 +1,17 @@
 package assignments.Ex2;
 
 public class Index2D implements Pixel2D {
-    private int width;
-    private int height;
     private int x;
     private int y;
 
-    public Index2D(int w, int h) {
-        this.width = w;
-        this.height = h;
+    public Index2D(int x, int y) {
+        this.x = y;
+        this.y = y;
     }
 
-    public Index2D(Pixel2D other, int w, int h) {
-        this.width = w;
-        this.height = h;
+    public Index2D(Pixel2D other) {
         this.x = other.getX();
         this.y = other.getY();
-    }
-
-    public Index2D(int x, int y, int w, int h) {
-        this.width = w;
-        this.height = h;
-        this.x = x;
-        this.y = y;
     }
 
     @Override
@@ -44,15 +33,21 @@ public class Index2D implements Pixel2D {
 
     @Override
     public String toString() {
-        String ans = null;
-
+        String ans = this.x + " " + this.y + " ";
         return ans;
     }
 
     @Override
     public boolean equals(Object p) {
-        boolean ans = true;
-
-        return ans;
+        if (p != null && p instanceof Index2D) {
+            boolean ans = true;
+            if (this.x == ((Index2D) p).x && this.y == ((Index2D) p).y) {
+                ans = true;
+                return ans;
+            }
+            ans = false;
+            return ans;
+        }
+        return false;
     }
 }

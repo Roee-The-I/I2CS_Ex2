@@ -107,26 +107,28 @@ public class Map implements Map2D, Serializable {
 
     @Override
     public int getPixel(int x, int y) {
-        int ans = -1;
-
-        return ans;
+        return map[x][y];
     }
 
     @Override
     public int getPixel(Pixel2D p) {
-        int ans = -1;
-
-        return ans;
+        if (p == null) {
+            throw new RuntimeException("Invalid dimensions");
+        }
+        return map[p.getX()][p.getY()];
     }
 
     @Override
     public void setPixel(int x, int y, int v) {
-
+        map[x][y] = v;
     }
 
     @Override
     public void setPixel(Pixel2D p, int v) {
-
+        if (p == null) {
+            throw new RuntimeException("Invalid dimensions");
+        }
+        map[p.getX()][p.getY()] = v;
     }
 
     @Override
