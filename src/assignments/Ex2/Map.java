@@ -1,6 +1,7 @@
 package assignments.Ex2;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
 
 /**
  * This class represents a 2D map (int[w][h]) as a "screen" or a raster matrix or maze over integers.
@@ -133,46 +134,140 @@ public class Map implements Map2D, Serializable {
 
     @Override
     public boolean isInside(Pixel2D p) {
-        boolean ans = true;
-
-        return ans;
+        if (p == null) return false;
+        int x = p.getX();
+        int y = p.getY();
+        return x >= 0 && x < map[0].length &&
+                y >= 0 && y < map.length;
     }
 
     @Override
     public boolean sameDimensions(Map2D p) {
-        boolean ans = false;
-
-        return ans;
+        if (p == null) {
+            throw new RuntimeException("map is Null");
+        }
+        return map.length == p.getMap().length && map[0].length == p.getMap()[0].length;
     }
 
     @Override
     public void addMap2D(Map2D p) {
+        if (!sameDimensions(p)) {
+            return;
+        }
+        var mapParameter = p.getMap();
+        for (int i = 0; i < this.map.length; i++) {
+            for (int j = 0; j < this.map[i].length; j++) {
+                map[i][j] += mapParameter[i][j];
+            }
+        }
 
     }
 
     @Override
     public void mul(double scalar) {
-
+        for (int i = 0; i < this.map.length; i++) {
+            for (int j = 0; j < this.map[0].length; j++) {
+                this.map[i][j] *= (int) scalar;
+            }
+        }
     }
 
     @Override
     public void rescale(double sx, double sy) {
-
+        int oldhight = this.map.length;
+        int oldwidth = this.map[0].length;
+        int newhight = (int) (this.map.length * sx);
+        int newwidth = (int) (this.map[0].length * sy);
+        int[][] newMap = new int[newhight][newwidth];
+        for (int i = 0; i < newhight; i++) {
+            for (int j = 0; j < newwidth; j++) {
+                int oldI = (int) (i / sx);
+                int oldJ = (int) (j / sy);
+                if (oldI >= oldhight) oldI = oldhight - 1;
+                if (oldJ >= oldwidth) oldJ = oldwidth - 1;
+                newMap[i][j] = map[oldI][oldJ];
+            }
+        }
+        this.map = newMap;
     }
 
     @Override
     public void drawCircle(Pixel2D center, double rad, int color) {
-
+        int center_x = center.getX();
+        int center_y = center.getY();
+        int radius = (int) (rad * rad);
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map[i].length; j++) {
+                int dx = i - center_x;
+                int dy = j - center_y;
+                if (dx * dx + dy * dy <= radius) {
+                    map[i][j] = color;
+                }
+            }
+        }
     }
+
 
     @Override
     public void drawLine(Pixel2D p1, Pixel2D p2, int color) {
-
+        int x1 = p1.getX();
+        int x2 = p2.getX();
+        int y1 = p1.getY();
+        int y2 = p2.getY();
+        if (x1 == x2 && y1 == y2) {
+            map[x1][y1] = color;
+            return;
+        }
+        int dx = Math.abs(x2 - x1);
+        int dy = Math.abs(y2 - y1);
+        if (dx >= dy) {
+            if (x1 > x2) {
+                int tx = x1;
+                x1 = x2;
+                x2 = tx;
+                int ty = y1;
+                y1 = y2;
+                y2 = ty;
+            }
+            double m = (x2 == x1) ? 0.0 : ((double) (y2 - y1)) / (double) (x2 - x1);
+            for (int x = x1; x <= x2; x++) {
+                double yReal = y1 + m * (x - x1);
+                int y = (int) Math.round(yReal);
+                map[x][y] = color;
+            }
+        } else {
+            if (y1 > y2) {
+                int tx = x1;
+                x1 = x2;
+                x2 = tx;
+                int ty = y1;
+                y1 = y2;
+                y2 = ty;
+            }
+            double m = (y2 == y1) ? 0.0 : ((double) (x2 - x1)) / (double) (y2 - y1);
+            for (int y = y1; y <= y2; y++) {
+                double xReal = x1 + m * (y - y1);
+                int x = (int) Math.round(xReal);
+                map[x][y] = color;
+            }
+        }
     }
 
     @Override
     public void drawRect(Pixel2D p1, Pixel2D p2, int color) {
-
+        int x1 = p1.getX();
+        int x2 = p2.getX();
+        int y1 = p1.getY();
+        int y2 = p2.getY();
+        int xMin = Math.min(x1, x2);
+        int xMax = Math.max(x1, x2);
+        int yMin = Math.min(y1, y2);
+        int yMax = Math.max(y1, y2);
+        for (int x = xMin; x <= xMax; x++) {
+            for (int y = yMin; y <= yMax; y++) {
+                map[x][y] = color;
+            }
+        }
     }
 
     @Override
@@ -210,9 +305,48 @@ public class Map implements Map2D, Serializable {
      * https://en.wikipedia.org/wiki/Flood_fill
      */
     public int fill(Pixel2D xy, int new_v, boolean cyclic) {
-        int ans = -1;
-
-        return ans;
+        if (xy == null || map == null || map.length == 0 || map[0].length == 0) return 0;
+        int w = getWidth();
+        int h = getHeight();
+        int x0 = xy.getX();
+        int y0 = xy.getY();
+        if (!cyclic) {
+            if (x0 < 0 || x0 >= w || y0 < 0 || y0 >= h) return 0;
+        } else {
+            x0 = Math.floorMod(x0, w);
+            y0 = Math.floorMod(y0, h);
+        }
+        int old = map[y0][x0];
+        if (old == new_v) return 0;
+        boolean[][] visited = new boolean[h][w];
+        ArrayDeque<int[]> pixelsQueue = new ArrayDeque<>();
+        pixelsQueue.add(new int[]{x0, y0});
+        visited[y0][x0] = true;
+        int count = 0;
+        while (!pixelsQueue.isEmpty()) {
+            int[] cur = pixelsQueue.removeFirst();
+            int x = cur[0], y = cur[1];
+            if (map[y][x] != old) continue;
+            map[y][x] = new_v;
+            count++;
+            int[] dx = {-1, 1, 0, 0};
+            int[] dy = {0, 0, -1, 1};
+            for (int k = 0; k < 4; k++) {
+                int nx = x + dx[k];
+                int ny = y + dy[k];
+                if (cyclic) {
+                    nx = Math.floorMod(nx, w);
+                    ny = Math.floorMod(ny, h);
+                } else {
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                }
+                if (!visited[ny][nx] && map[ny][nx] == old) {
+                    visited[ny][nx] = true;
+                    pixelsQueue.add(new int[]{nx, ny});
+                }
+            }
+        }
+        return count;
     }
 
     @Override
