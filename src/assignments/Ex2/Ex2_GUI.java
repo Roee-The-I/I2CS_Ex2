@@ -1,5 +1,4 @@
 package assignments.Ex2;
-
 /**
  * Intro2CS_2026A
  * This class represents a Graphical User Interface (GUI) for Map2D.

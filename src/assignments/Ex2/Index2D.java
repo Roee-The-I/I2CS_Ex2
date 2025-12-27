@@ -5,7 +5,7 @@ public class Index2D implements Pixel2D {
     private int y;
 
     public Index2D(int x, int y) {
-        this.x = y;
+        this.x = x;
         this.y = y;
     }
 

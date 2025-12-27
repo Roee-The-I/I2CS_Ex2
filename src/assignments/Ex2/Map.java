@@ -2,6 +2,7 @@ package assignments.Ex2;
 
 import java.io.Serializable;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 
 /**
  * This class represents a 2D map (int[w][h]) as a "screen" or a raster matrix or maze over integers.
@@ -49,9 +50,9 @@ public class Map implements Map2D, Serializable {
         if (w <= 0 || h <= 0) {
             throw new RuntimeException("Invalid dimensions");
         }
-        int[][] newMap = new int[h][w];
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
+        int[][] newMap = new int[w][h];
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
                 newMap[i][j] = v;
             }
         }
@@ -68,14 +69,14 @@ public class Map implements Map2D, Serializable {
         }
         int h = arr.length;
         int w = arr[0].length;
-        int[][] ans = new int[h][w];
-        for (int i = 0; i < h; i++) {
+        int[][] ans = new int[w][h];
+        for (int i = 0; i < w; i++) {
             if (arr[i] == null || arr[i].length != w) {
                 throw new RuntimeException("Ragged or null row");
             }
         }
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
                 ans[i][j] = arr[i][j];
             }
         }
@@ -84,12 +85,11 @@ public class Map implements Map2D, Serializable {
 
     @Override
     public int[][] getMap() {
-        int[][] ans = null;
-        int h = this.map.length;
-        int w = this.map[0].length;
-        ans = new int[h][w];
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
+        int w = this.map.length;
+        int h = this.map[0].length;
+        int[][] ans = new int[w][h];
+        for (int i = 0; i < w; i++) {
+            for (int j = 0; j < h; j++) {
                 ans[i][j] = this.map[i][j];
             }
         }
@@ -98,12 +98,12 @@ public class Map implements Map2D, Serializable {
 
     @Override
     public int getWidth() {
-        return map[0].length;
+        return map.length;
     }
 
     @Override
     public int getHeight() {
-        return map.length;
+        return map[0].length;
     }
 
     @Override
@@ -137,8 +137,8 @@ public class Map implements Map2D, Serializable {
         if (p == null) return false;
         int x = p.getX();
         int y = p.getY();
-        return x >= 0 && x < map[0].length &&
-                y >= 0 && y < map.length;
+        return x >= 0 && x < map.length &&
+                y >= 0 && y < map[0].length;
     }
 
     @Override
@@ -160,31 +160,30 @@ public class Map implements Map2D, Serializable {
                 map[i][j] += mapParameter[i][j];
             }
         }
-
     }
 
     @Override
     public void mul(double scalar) {
         for (int i = 0; i < this.map.length; i++) {
             for (int j = 0; j < this.map[0].length; j++) {
-                this.map[i][j] *= (int) scalar;
+                this.map[i][j] = (int) (this.map[i][j] * scalar);
             }
         }
     }
 
     @Override
     public void rescale(double sx, double sy) {
-        int oldhight = this.map.length;
-        int oldwidth = this.map[0].length;
-        int newhight = (int) (this.map.length * sx);
-        int newwidth = (int) (this.map[0].length * sy);
-        int[][] newMap = new int[newhight][newwidth];
-        for (int i = 0; i < newhight; i++) {
-            for (int j = 0; j < newwidth; j++) {
+        int oldwidth = this.map.length;
+        int oldhight = this.map[0].length;
+        int newwidth = (int) (this.map.length * sx);
+        int newhight = (int) (this.map[0].length * sy);
+        int[][] newMap = new int[newwidth][newhight];
+        for (int i = 0; i < newwidth; i++) {
+            for (int j = 0; j < newhight; j++) {
                 int oldI = (int) (i / sx);
                 int oldJ = (int) (j / sy);
-                if (oldI >= oldhight) oldI = oldhight - 1;
-                if (oldJ >= oldwidth) oldJ = oldwidth - 1;
+                if (oldI >= oldwidth) oldI = oldwidth - 1;
+                if (oldJ >= oldhight) oldJ = oldhight - 1;
                 newMap[i][j] = map[oldI][oldJ];
             }
         }
@@ -355,16 +354,95 @@ public class Map implements Map2D, Serializable {
      * https://en.wikipedia.org/wiki/Breadth-first_search
      */
     public Pixel2D[] shortestPath(Pixel2D p1, Pixel2D p2, int obsColor, boolean cyclic) {
-        Pixel2D[] ans = null;  // the result.
-
+        int w = getWidth();
+        int h = getHeight();
+        int[][] the_map = getMap();
+        int p1X = p1.getX();
+        int p1Y = p1.getY();
+        int p2X = p2.getX();
+        int p2Y = p2.getY();
+        if (!inside(p1X, p1Y, w, h) || !inside(p2X, p2Y, w, h)) return null;
+        if (the_map[p1X][p1Y] == obsColor || the_map[p2X][p2Y] == obsColor) return null;
+        boolean[][] vis = new boolean[w][h];
+        int[][] px = new int[h][w];
+        int[][] py = new int[h][w];
+        for (int i = 0; i < h; i++)
+            for (int j = 0; j < w; j++) {
+                px[i][j] = -1;
+                py[i][j] = -1;
+            }
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        queue.add(new int[]{p1Y, p1X});
+        vis[p1Y][p1X] = true;
+        int[] dx = {-1, 1, 0, 0};
+        int[] dy = {0, 0, -1, 1};
+        while (!queue.isEmpty()) {
+            int[] cur = queue.removeFirst();
+            int x = cur[0], y = cur[1];
+            if (x == p2X && y == p2Y) break;
+            for (int k = 0; k < 4; k++) {
+                int new_x = x + dx[k];
+                int new_y = y + dy[k];
+                if (cyclic) {
+                    new_x = (new_x % w + w) % w;
+                    new_y = (new_y % h + h) % h;
+                } else {
+                    if (!inside(new_x, new_y, w, h)) continue;
+                }
+                if (vis[new_y][new_x]) continue;
+                if (the_map[new_y][new_x] == obsColor) continue;
+                vis[new_y][new_x] = true;
+                px[new_y][new_x] = x;
+                py[new_y][new_x] = y;
+                queue.addLast(new int[]{new_y, new_x});
+            }
+        }
+        if (!vis[p2X][p2Y]) return null;
+        ArrayList<Pixel2D> rev = new ArrayList<>();
+        for (int x = p2X, y = p2Y; x != -1; ) {
+            rev.add(new Index2D(x, y));
+            int nx = px[x][y];
+            int ny = py[x][y];
+            x = nx;
+            y = ny;
+        }
+        Pixel2D[] ans = new Pixel2D[rev.size()];
+        for (int i = 0; i < rev.size(); i++) ans[i] = rev.get(rev.size() - 1 - i);
         return ans;
+    }
+
+    private static boolean inside(int x, int y, int w, int h) {
+        return x >= 0 && x < w && y >= 0 && y < h;
     }
 
     @Override
     public Map2D allDistance(Pixel2D start, int obsColor, boolean cyclic) {
-        Map2D ans = null;  // the result.
-
-        return ans;
+        int w = getWidth();
+        int h = getHeight();
+        Map dist = new Map(w, h, -1);
+        if (start == null) return dist;
+        if (start.getX() < 0 || start.getX() >= w || start.getY() < 0 || start.getY() >= h) return dist;
+        if (getPixel(start) == obsColor) return dist;
+        ArrayDeque<Index2D> q = new ArrayDeque<>();
+        dist.setPixel(start, 0);
+        q.addLast((Index2D) (start));
+        int[] dx = {-1, 1, 0, 0};
+        int[] dy = {0, 0, -1, 1};
+        while (!q.isEmpty()) {
+            Index2D p = q.removeFirst();
+            int d = dist.getPixel(p);
+            for (int k = 0; k < 4; k++) {
+                int nx = p.getX() + dx[k];
+                int ny = p.getY() + dy[k];
+                if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+                Index2D np = new Index2D(nx, ny);
+                if (getPixel(np) == obsColor) continue;
+                if (dist.getPixel(np) != -1) continue;
+                dist.setPixel(np, d + 1);
+                q.addLast(np);
+            }
+        }
+        return dist;
     }
     ////////////////////// Private Methods ///////////////////////
 
