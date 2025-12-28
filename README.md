@@ -39,3 +39,8 @@ java -jar lib/junit-platform-console-standalone-1.10.2.jar --class-path out --sc
 - מומלץ לעבוד ב־IDE (IntelliJ/VS Code) כדי לראות את מבנה החבילות ואת הבדיקות המובנות.
 - תרגילי Ex1 ו־Ex2 כוללים הערות TODO בקוד – זה המקום להשלים את המימושים או לשפרם.
 - קבצי המפה (`map.txt`, `Map 2.txt`) מספקים דוגמאות למסלולים ולמכשולים; ניתן ליצור קבצי מפה משלכם באותו פורמט טבלאי.
+
+
+
+
+![Shortest Path](FinishPIc.png)
