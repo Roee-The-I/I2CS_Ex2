@@ -18,6 +18,7 @@ public class Ex2_GUI {
     public static void drawMap(Map2D map) {
         StdDrawTest.drawMat(map.getMap());
     }
+
     /**
      *
      * @param mapFileName
@@ -51,6 +52,7 @@ public class Ex2_GUI {
 
         return ans;
     }
+
     public static void saveMap(Map2D map, String mapFileName) {
         try {
             PrintWriter pw = new PrintWriter(new FileWriter(mapFileName));
@@ -71,6 +73,7 @@ public class Ex2_GUI {
             throw new RuntimeException(e);
         }
     }
+
     public static void main(String[] a) {
         String mapFile = "map.txt";
         Map2D map = loadMap(mapFile);
