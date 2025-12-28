@@ -1,4 +1,5 @@
 package assignments.Ex2;
+
 /**
  * Intro2CS_2026A
  * This class represents a Graphical User Interface (GUI) for Map2D.
@@ -10,7 +11,7 @@ package assignments.Ex2;
  */
 public class Ex2_GUI {
     public static void drawMap(Map2D map) {
-        //
+        StdDrawTest.drawMat(map.getMap());
     }
 
     /**
@@ -32,6 +33,7 @@ public class Ex2_GUI {
 
 
     }
+
     public static void main(String[] a) {
         String mapFile = "map.txt";
         Map2D map = loadMap(mapFile);

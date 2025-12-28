@@ -1,5 +1,6 @@
-package classes.week4;
-/** This is NOT a Junit class - as it tests GUI components which 
+package assignments.Ex2;
+
+/** This is NOT a Junit class - as it tests GUI components which
  * should not be tested using Junit.
  * 
  * The Code uses the STDDraw class: 
